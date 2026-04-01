@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-terra: #C1440E;
+  --color-sol: #F5A623;
+  --color-noite: #0D0F1A;
+  --color-superficie: #13162A;
+  --color-borda: #1E2240;
+  --color-acento: #FF6B35;
+  --color-verde: #2ECC71;
+  --color-texto: #F0EDE8;
+  --color-muted: #8B8FA8;
+
+  --radius-card: 16px;
+  --radius-button: 10px;
+  --radius-input: 10px;
+  --radius-badge: 6px;
+
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
+  --shadow-card-hover: 0 8px 40px rgba(193,68,14,0.2);
+  --shadow-button-glow: 0 0 20px rgba(245,166,35,0.3);
+}
+
+@layer base {
+  body {
+    @apply bg-noite text-texto font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-superficie/80 backdrop-blur-md border border-borda rounded-card shadow-card;
+  }
+
+  .terra-gradient {
+    background: linear-gradient(135deg, #C1440E 0%, #F5A623 50%, #FF6B35 100%);
+  }
+
+  .card-glow {
+    background: radial-gradient(ellipse at top, rgba(193,68,14,0.15), transparent);
+  }
+
+  .premium-badge {
+    background: linear-gradient(90deg, #F5A623, #C1440E);
+  }
+
+  .kitenge-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C1440E' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6zM36 4V0h-2v4h-4v2h4v4h2V6h4V4h-4z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-noite;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-borda rounded-full hover:bg-terra/50 transition-colors;
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

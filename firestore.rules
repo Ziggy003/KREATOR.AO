@@ -1,0 +1,290 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {uid}
+    // Fields:
+    //   - uid: string (required) - Firebase Auth UID
+    //   - email: string (required, email format) - User email address
+    //   - type: string (required, enum: creator, brand, agency) - User account type
+    //   - kycStatus: string (enum: none, pending, verified) - KYC verification status
+    //   - createdAt: string (date-time format) - Account creation timestamp
+    //
+    // Collection: creator_profiles
+    // Document ID: {uid}
+    // Fields:
+    //   - uid: string (required) - Owner UID
+    //   - name: string (required) - Artistic or display name
+    //   - niche: string - Content niche
+    //   - location: string - City in Angola
+    //   - bio: string - Short biography
+    //   - platform: string - Primary social platform
+    //   - balance: map - { aoa: number, usd: number }
+    //   - stats: map - Followers, views, likes
+    //   - updatedAt: string (date-time format)
+    //
+    // Collection: brand_profiles
+    // Document ID: {uid}
+    // Fields:
+    //   - uid: string (required) - Owner UID
+    //   - companyName: string (required) - Official company name
+    //   - industry: string - Business industry
+    //   - location: string - Headquarters location
+    //   - website: string (uri format)
+    //   - balance: map - { aoa: number, usd: number }
+    //   - updatedAt: string (date-time format)
+    //
+    // Collection: campaigns
+    // Document ID: {campaignId}
+    // Fields:
+    //   - id: string
+    //   - brandId: string (required) - UID of the brand owner
+    //   - title: string (required)
+    //   - description: string
+    //   - budget: number
+    //   - status: string (required, enum: draft, active, completed, cancelled)
+    //   - createdAt: string (date-time format)
+    //
+    // Collection: campaign_applications
+    // Document ID: {applicationId}
+    // Fields:
+    //   - campaignId: string (required)
+    //   - creatorId: string (required)
+    //   - brandId: string (required)
+    //   - status: string (required, enum: pending, accepted, rejected)
+    //   - createdAt: string (date-time format)
+    //
+    // Collection: transactions
+    // Document ID: {transactionId}
+    // Fields:
+    //   - userId: string (required)
+    //   - type: string (required, enum: tip, sponsorship, ad_revenue, withdrawal, deposit)
+    //   - amount: number (required)
+    //   - currency: string (required, enum: AOA, USD)
+    //   - status: string (required, enum: pending, completed, failed)
+    //   - description: string
+    //   - date: timestamp (required)
+    //
+    // Collection: products
+    // Document ID: {productId}
+    // Fields:
+    //   - id: string
+    //   - uid: string (required) - Owner UID
+    //   - name: string (required)
+    //   - description: string
+    //   - price: number (required)
+    //   - type: string (required, enum: digital, physical)
+    //   - category: string
+    //   - status: string (required, enum: active, inactive)
+    //   - image: string (uri format)
+    //   - sales: integer
+    //   - revenue: number
+    //   - createdAt: string (date-time format)
+    //
+    // Collection: bank_accounts
+    // Document ID: {accountId}
+    // Fields:
+    //   - uid: string (required) - Owner UID
+    //   - bankName: string (required) - Name of the bank
+    //   - accountHolder: string (required) - Name on the account
+    //   - iban: string (required) - IBAN number
+    //   - isPrimary: boolean (optional) - If this is the primary account
+    //   - createdAt: timestamp (required) - Creation time
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'admin') ||
+          (request.auth.token.email == "manewizzy404@gmail.com" && request.auth.token.email_verified == true)
+        );
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string && (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser(data) {
+      return data.keys().hasOnly(['uid', 'email', 'type', 'kycStatus', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             data.email is string && data.email.size() < 100 && isValidEmail(data.email) &&
+             data.type in ['creator', 'brand', 'agency', 'admin'] &&
+             (!('kycStatus' in data) || data.kycStatus in ['none', 'pending', 'verified']) &&
+             (!('createdAt' in data) || isValidDateString(data.createdAt));
+    }
+
+    function isValidBalance(balance) {
+      return balance is map && 
+             balance.aoa is number && 
+             balance.usd is number;
+    }
+
+    function isValidCreatorProfile(data) {
+      return data.keys().hasOnly(['uid', 'name', 'niche', 'location', 'bio', 'platform', 'stats', 'updatedAt', 'balance', 'platforms']) &&
+             data.uid == request.auth.uid &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             (!('balance' in data) || isValidBalance(data.balance)) &&
+             (!('niche' in data) || (data.niche is string && data.niche.size() < 50)) &&
+             (!('location' in data) || (data.location is string && data.location.size() < 50)) &&
+             (!('bio' in data) || (data.bio is string && data.bio.size() < 1000)) &&
+             (!('platform' in data) || (data.platform is string && data.platform.size() < 50)) &&
+             (!('updatedAt' in data) || isValidDateString(data.updatedAt));
+    }
+
+    function isValidBrandProfile(data) {
+      return data.keys().hasOnly(['uid', 'companyName', 'industry', 'location', 'website', 'updatedAt', 'balance']) &&
+             data.uid == request.auth.uid &&
+             data.companyName is string && data.companyName.size() > 0 && data.companyName.size() < 100 &&
+             (!('balance' in data) || isValidBalance(data.balance)) &&
+             (!('industry' in data) || (data.industry is string && data.industry.size() < 50)) &&
+             (!('location' in data) || (data.location is string && data.location.size() < 50)) &&
+             (!('website' in data) || (data.website is string && data.website.size() < 200 && isValidUrl(data.website))) &&
+             (!('updatedAt' in data) || isValidDateString(data.updatedAt));
+    }
+
+    function isValidCampaign(data) {
+      return data.keys().hasOnly(['id', 'brandId', 'title', 'description', 'budget', 'status', 'createdAt']) &&
+             data.brandId == request.auth.uid &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             (!('description' in data) || (data.description is string && data.description.size() < 2000)) &&
+             (!('budget' in data) || (data.budget is number && data.budget >= 0)) &&
+             data.status in ['draft', 'active', 'completed', 'cancelled'] &&
+             (!('createdAt' in data) || isValidDateString(data.createdAt));
+    }
+
+    function isValidCampaignApplication(data) {
+      return data.keys().hasOnly(['campaignId', 'creatorId', 'brandId', 'status', 'createdAt']) &&
+             data.creatorId == request.auth.uid &&
+             data.campaignId is string &&
+             data.brandId is string &&
+             data.status in ['pending', 'accepted', 'rejected'] &&
+             (!('createdAt' in data) || isValidDateString(data.createdAt));
+    }
+
+    function isValidTransaction(data) {
+      return data.keys().hasOnly(['userId', 'type', 'amount', 'currency', 'status', 'description', 'date']) &&
+             data.userId == request.auth.uid &&
+             data.type in ['tip', 'sponsorship', 'ad_revenue', 'withdrawal', 'deposit'] &&
+             data.amount is number &&
+             data.currency in ['AOA', 'USD'] &&
+             data.status in ['pending', 'completed', 'failed'] &&
+             (!('description' in data) || (data.description is string && data.description.size() < 500));
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasOnly(['id', 'uid', 'name', 'description', 'price', 'type', 'category', 'status', 'image', 'sales', 'revenue', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+             (!('description' in data) || (data.description is string && data.description.size() < 2000)) &&
+             data.price is number && data.price >= 0 &&
+             data.type in ['digital', 'physical'] &&
+             (!('category' in data) || (data.category is string && data.category.size() < 100)) &&
+             data.status in ['active', 'inactive'] &&
+             (!('image' in data) || (data.image is string && data.image.size() < 500 && isValidUrl(data.image))) &&
+             (!('sales' in data) || data.sales is int) &&
+             (!('revenue' in data) || data.revenue is number) &&
+             (!('createdAt' in data) || isValidDateString(data.createdAt));
+    }
+
+    function isValidBankAccount(data) {
+      return data.keys().hasAll(['uid', 'bankName', 'accountHolder', 'iban', 'createdAt']) &&
+             data.uid is string && data.uid == request.auth.uid &&
+             data.bankName is string && data.bankName.size() > 0 && data.bankName.size() < 100 &&
+             data.accountHolder is string && data.accountHolder.size() > 0 && data.accountHolder.size() < 100 &&
+             data.iban is string && data.iban.size() > 0 && data.iban.size() < 50 &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Match Rules
+    // ===============================================================
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid) && isValidUser(request.resource.data);
+      allow update: if isOwner(uid) && isValidUser(request.resource.data) &&
+                      request.resource.data.type == resource.data.type; // Cannot change account type
+    }
+
+    match /creator_profiles/{uid} {
+      allow read: if true;
+      allow create: if isOwner(uid) && isValidCreatorProfile(request.resource.data);
+      allow update: if isOwner(uid) && isValidCreatorProfile(request.resource.data);
+      allow delete: if isOwner(uid) || isAdmin();
+    }
+
+    match /brand_profiles/{uid} {
+      allow read: if true;
+      allow create: if isOwner(uid) && isValidBrandProfile(request.resource.data);
+      allow update: if isOwner(uid) && isValidBrandProfile(request.resource.data);
+      allow delete: if isOwner(uid) || isAdmin();
+    }
+
+    match /campaigns/{campaignId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidCampaign(request.resource.data);
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.brandId) && isValidCampaign(request.resource.data);
+      allow delete: if isAuthenticated() && (request.auth.uid == resource.data.brandId || isAdmin());
+    }
+
+    match /campaign_applications/{applicationId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.creatorId || request.auth.uid == resource.data.brandId || isAdmin());
+      allow create: if isAuthenticated() && isValidCampaignApplication(request.resource.data);
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.brandId) && 
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+      allow delete: if isAuthenticated() && (request.auth.uid == resource.data.creatorId || isAdmin());
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isAuthenticated() && isValidTransaction(request.resource.data);
+      allow update: if isAdmin(); // Only admins can update transaction status
+      allow delete: if isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if true; // Products are public
+      allow create: if isAuthenticated() && isValidProduct(request.resource.data);
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.uid) && isValidProduct(request.resource.data);
+      allow delete: if isAuthenticated() && (request.auth.uid == resource.data.uid || isAdmin());
+    }
+
+    match /bank_accounts/{accountId} {
+      allow read: if isAuthenticated() && request.auth.uid == resource.data.uid;
+      allow create: if isAuthenticated() && isValidBankAccount(request.resource.data);
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.uid && 
+                      isValidBankAccount(request.resource.data) &&
+                      request.resource.data.uid == resource.data.uid &&
+                      request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAuthenticated() && (request.auth.uid == resource.data.uid || isAdmin());
+    }
+  }
+}

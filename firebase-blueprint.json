@@ -1,0 +1,181 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Basic user account information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "type": { "type": "string", "enum": ["creator", "brand", "agency"], "description": "User account type" },
+        "kycStatus": { "type": "string", "enum": ["none", "pending", "verified"], "description": "KYC verification status" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" }
+      },
+      "required": ["uid", "email", "type"]
+    },
+    "CreatorProfile": {
+      "title": "Creator Profile",
+      "description": "Public profile for content creators",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Owner UID" },
+        "name": { "type": "string", "description": "Artistic or display name" },
+        "niche": { "type": "string", "description": "Content niche (e.g., Music, Tech)" },
+        "location": { "type": "string", "description": "City in Angola" },
+        "bio": { "type": "string", "description": "Short biography" },
+        "platform": { "type": "string", "description": "Primary social platform" },
+        "balance": {
+          "type": "object",
+          "properties": {
+            "aoa": { "type": "number" },
+            "usd": { "type": "number" }
+          }
+        },
+        "stats": {
+          "type": "object",
+          "properties": {
+            "followers": { "type": "integer" },
+            "views": { "type": "integer" },
+            "likes": { "type": "integer" }
+          }
+        },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name"]
+    },
+    "BrandProfile": {
+      "title": "Brand Profile",
+      "description": "Public profile for brands and companies",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Owner UID" },
+        "companyName": { "type": "string", "description": "Official company name" },
+        "industry": { "type": "string", "description": "Business industry" },
+        "location": { "type": "string", "description": "Headquarters location" },
+        "website": { "type": "string", "format": "uri" },
+        "balance": {
+          "type": "object",
+          "properties": {
+            "aoa": { "type": "number" },
+            "usd": { "type": "number" }
+          }
+        },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "companyName"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial transaction record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string", "description": "UID of the user involved" },
+        "type": { "type": "string", "enum": ["tip", "sponsorship", "ad_revenue", "withdrawal", "deposit"] },
+        "amount": { "type": "number" },
+        "currency": { "type": "string", "enum": ["AOA", "USD"] },
+        "status": { "type": "string", "enum": ["pending", "completed", "failed"] },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "type", "amount", "currency", "status"]
+    },
+    "Campaign": {
+      "title": "Campaign",
+      "description": "Marketing campaign created by a brand",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "brandId": { "type": "string", "description": "UID of the brand owner" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "budget": { "type": "number" },
+        "status": { "type": "string", "enum": ["draft", "active", "completed", "cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["brandId", "title", "status"]
+    },
+    "CampaignApplication": {
+      "title": "Campaign Application",
+      "description": "A creator's application to a campaign",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "campaignId": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "brandId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["campaignId", "creatorId", "brandId", "status"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "A digital or physical product sold by a creator",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string", "description": "Owner UID" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "type": { "type": "string", "enum": ["digital", "physical"] },
+        "category": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "image": { "type": "string", "format": "uri" },
+        "sales": { "type": "integer" },
+        "revenue": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "price", "type", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "Private user account data"
+    },
+    "/creator_profiles/{uid}": {
+      "schema": "CreatorProfile",
+      "description": "Public creator profile"
+    },
+    "/brand_profiles/{uid}": {
+      "schema": "BrandProfile",
+      "description": "Public brand profile"
+    },
+    "/campaigns/{campaignId}": {
+      "schema": "Campaign",
+      "description": "Publicly visible campaigns"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Financial transaction records"
+    },
+    "/campaign_applications/{applicationId}": {
+      "schema": "CampaignApplication",
+      "description": "Creator applications to campaigns"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Products for sale"
+    },
+    "/bank_accounts/{accountId}": {
+      "schema": "BankAccount",
+      "description": "User bank account information"
+    }
+  },
+  "entities": {
+    "BankAccount": {
+      "title": "Bank Account",
+      "description": "User bank account details for withdrawals",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "bankName": { "type": "string" },
+        "accountHolder": { "type": "string" },
+        "iban": { "type": "string" },
+        "isPrimary": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "bankName", "accountHolder", "iban"]
+    },

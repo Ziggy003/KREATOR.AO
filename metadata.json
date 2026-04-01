@@ -1,0 +1,9 @@
+{
+  "name": "KREATOR.AO",
+  "description": "Plataforma agregadora de monetização para criadores de conteúdo angolanos. Conecta redes sociais, marcas e pagamentos locais.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
