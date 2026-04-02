@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { User as AppUser, CreatorProfile, BrandProfile } from "../types";
-import { auth, db, signInWithGoogle, signInWithFacebook, logout as firebaseLogout, handleFirestoreError, OperationType } from "../lib/firebase";
+import { auth, db, signInWithGoogle, signInWithFacebook, loginWithEmail, signupWithEmail, logout as firebaseLogout, handleFirestoreError, OperationType } from "../lib/firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { toast } from "sonner";
@@ -13,7 +13,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   initialize: () => void;
-  login: (type?: AppUser["type"], provider?: "google" | "facebook") => Promise<void>;
+  login: (type?: AppUser["type"]) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -79,10 +79,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
-  login: async (type?: AppUser["type"], provider: "google" | "facebook" = "google") => {
+  login: async (type?: AppUser["type"]) => {
     set({ isLoading: true });
     try {
-      const result = provider === "google" ? await signInWithGoogle() : await signInWithFacebook();
+      const result = await signInWithGoogle();
       const user = result.user;
       
       // Check if user document exists, if not create a default one
@@ -119,9 +119,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
       }
       toast.success("Login efectuado com sucesso!");
-    } catch (error) {
+    } catch (error: any) {
+      if (error.code === "auth/operation-not-allowed") {
+        toast.error("O login com Google não está activado no Firebase Console.");
+      } else {
+        toast.error("Erro ao entrar com Google.");
+      }
       handleFirestoreError(error, OperationType.WRITE, "auth/login");
-      toast.error("Erro ao efectuar login.");
     } finally {
       set({ isLoading: false });
     }

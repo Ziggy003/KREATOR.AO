@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, onSnapshot, orderBy, limit, addDoc, updateDoc, deleteDoc, getDocFromServer } from "firebase/firestore";
 
 // @ts-ignore
@@ -15,6 +15,8 @@ export const facebookProvider = new FacebookAuthProvider();
 // Auth Helpers
 export const signInWithGoogle = () => signInWithPopup(auth, googleProvider);
 export const signInWithFacebook = () => signInWithPopup(auth, facebookProvider);
+export const loginWithEmail = (email: string, pass: string) => signInWithEmailAndPassword(auth, email, pass);
+export const signupWithEmail = (email: string, pass: string) => createUserWithEmailAndPassword(auth, email, pass);
 export const logout = () => signOut(auth);
 
 // Error Handling

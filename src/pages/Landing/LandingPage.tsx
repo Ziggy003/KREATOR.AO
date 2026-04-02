@@ -14,7 +14,8 @@ import {
   PlayCircle,
   Instagram,
   Music2,
-  Youtube
+  Youtube,
+  CheckCircle2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatCurrency } from "../../lib/utils";
@@ -220,6 +221,157 @@ export const LandingPage = () => {
                 </div>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Marcas Section */}
+      <section id="marcas" className="py-32 relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-2 gap-20 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <Badge variant="outline" className="mb-6 border-terra text-terra">Para Marcas & Agências</Badge>
+              <h2 className="text-4xl md:text-6xl font-display font-bold mb-8 leading-tight">
+                Encontra os criadores certos para a tua <span className="text-terra">marca</span>.
+              </h2>
+              <p className="text-xl text-muted mb-10 leading-relaxed">
+                Acede a dados reais de performance e audiência. Elimina o "achismo" e investe em criadores que realmente geram resultados em Angola.
+              </p>
+              
+              <ul className="space-y-6 mb-12">
+                {[
+                  "Marketplace de criadores verificado",
+                  "Métricas de audiência em tempo real",
+                  "Gestão de campanhas e pagamentos centralizada",
+                  "Relatórios de ROI automáticos"
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-4 text-texto">
+                    <div className="w-6 h-6 rounded-full bg-terra/20 flex items-center justify-center text-terra">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+
+              <Link to="/auth?mode=signup&type=brand">
+                <Button size="lg" variant="gradient" className="h-16 px-10 text-lg">
+                  Registar como Marca
+                </Button>
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="relative"
+            >
+              <div className="glass-card p-4 rotate-3 hover:rotate-0 transition-transform duration-500">
+                <img 
+                  src="https://picsum.photos/seed/brands/800/600" 
+                  alt="Brands Dashboard" 
+                  className="rounded-card shadow-2xl"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+              <div className="absolute -bottom-10 -left-10 glass-card p-6 animate-float hidden md:block">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-verde/20 flex items-center justify-center text-verde">
+                    <TrendingUp className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted uppercase font-bold">ROI Médio</p>
+                    <p className="text-2xl font-bold text-verde">+340%</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="precos" className="py-32 bg-superficie/30 relative">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">Planos Simples e Transparentes</h2>
+            <p className="text-muted text-lg">Escolhe o plano que melhor se adapta ao teu momento como criador.</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Free Plan */}
+            <motion.div
+              whileHover={{ y: -10 }}
+              className="glass-card p-10 border-borda hover:border-muted transition-all flex flex-col"
+            >
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold mb-2">Free</h3>
+                <p className="text-muted text-sm">Para quem está a começar agora.</p>
+              </div>
+              <div className="mb-8">
+                <span className="text-5xl font-display font-bold">0 Kz</span>
+                <span className="text-muted">/mês</span>
+              </div>
+              <ul className="space-y-4 mb-10 flex-grow">
+                {[
+                  "Até 3 Produtos Digitais",
+                  "Receber Propinas (Tips)",
+                  "Analytics Básicos",
+                  "Levantamentos Nacionais (Express)",
+                  "Taxa de 10% por transação"
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-sm text-muted">
+                    <CheckCircle2 className="w-5 h-5 text-verde" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/auth?mode=signup">
+                <Button variant="outline" className="w-full h-14">Começar Grátis</Button>
+              </Link>
+            </motion.div>
+
+            {/* Premium Plan */}
+            <motion.div
+              whileHover={{ y: -10 }}
+              className="glass-card p-10 border-terra bg-terra/5 relative overflow-hidden flex flex-col"
+            >
+              <div className="absolute top-0 right-0 terra-gradient px-6 py-2 rounded-bl-2xl text-xs font-bold uppercase tracking-widest">
+                Recomendado
+              </div>
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold mb-2 text-terra">Premium</h3>
+                <p className="text-muted text-sm">Para criadores profissionais.</p>
+              </div>
+              <div className="mb-8">
+                <span className="text-5xl font-display font-bold text-sol">15.000 Kz</span>
+                <span className="text-muted">/mês</span>
+              </div>
+              <ul className="space-y-4 mb-10 flex-grow">
+                {[
+                  "Produtos Digitais Ilimitados",
+                  "Propinas Recorrentes (Subscrições)",
+                  "Analytics Avançados (AI Insights)",
+                  "Wallets Internacionais (PayPal/Payoneer)",
+                  "Taxa reduzida de 5% por transação",
+                  "Suporte Prioritário 24/7",
+                  "Selo de Criador Verificado"
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-sm text-texto">
+                    <CheckCircle2 className="w-5 h-5 text-terra" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/auth?mode=signup">
+                <Button variant="gradient" className="w-full h-14 shadow-button-glow">Upgrade para Premium</Button>
+              </Link>
+            </motion.div>
           </div>
         </div>
       </section>

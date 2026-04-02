@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../stores/useAuthStore";
 import { 
   Building2, 
   Search, 
@@ -20,6 +22,8 @@ import { cn } from "../../lib/utils";
 import { toast } from "sonner";
 
 export const BrandsPage = () => {
+  const navigate = useNavigate();
+  const { creatorProfile } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState("");
 
   const brands = [
@@ -159,7 +163,23 @@ export const BrandsPage = () => {
                   <Button variant="ghost" size="sm" className="gap-2 text-muted hover:text-texto" onClick={() => toast.info("Perfil da marca em breve!")}>
                     Ver Perfil
                   </Button>
-                  <Button variant="outline" size="sm" className="gap-2 border-sol/30 text-sol hover:bg-sol/10" onClick={() => toast.info("Chat com a marca em breve!")}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="gap-2 border-sol/30 text-sol hover:bg-sol/10" 
+                    onClick={() => {
+                      if (creatorProfile?.plan !== "premium") {
+                        toast.error("Contacto directo disponível apenas no plano Premium!", {
+                          action: {
+                            label: "Ver Planos",
+                            onClick: () => navigate("/dashboard/precos")
+                          }
+                        });
+                      } else {
+                        toast.info("Chat com a marca em breve!");
+                      }
+                    }}
+                  >
                     <MessageSquare className="w-4 h-4" /> Contactar
                   </Button>
                 </div>

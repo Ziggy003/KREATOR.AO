@@ -63,6 +63,16 @@ async function startServer() {
       case "twitch":
         authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=user:read:email&state=${state}`;
         break;
+      case "twitter":
+      case "x":
+        authUrl = `https://twitter.com/i/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=tweet.read%20users.read&state=${state}&code_challenge=challenge&code_challenge_method=plain`;
+        break;
+      case "linkedin":
+        authUrl = `https://www.linkedin.com/oauth/v2/authorization?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=r_liteprofile%20r_emailaddress&state=${state}`;
+        break;
+      case "pinterest":
+        authUrl = `https://www.pinterest.com/oauth/?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=read_public&state=${state}`;
+        break;
       default:
         return res.status(400).json({ error: "Unsupported platform" });
     }
@@ -164,13 +174,19 @@ async function startServer() {
       revenue: Math.floor(Math.random() * 100000 + 10000),
       topContent: [
         { 
-          title: platformId === "youtube" ? "Vlog em Luanda" : "Dancinha Viral", 
+          title: platformId === "youtube" ? "Vlog em Luanda" : 
+                 platformId === "twitter" || platformId === "x" ? "Thread sobre Criatividade" :
+                 platformId === "linkedin" ? "Como crescer no KREATOR.AO" :
+                 platformId === "pinterest" ? "Moodboard para Criadores" : "Dancinha Viral", 
           views: `${Math.floor(Math.random() * 50 + 10)}K`, 
           likes: `${Math.floor(Math.random() * 20 + 5)}K`, 
           comments: Math.floor(Math.random() * 1000).toString() 
         },
         { 
-          title: platformId === "youtube" ? "Review de Gadget" : "POV: Criador em Angola", 
+          title: platformId === "youtube" ? "Review de Gadget" : 
+                 platformId === "twitter" || platformId === "x" ? "Meme do Dia" :
+                 platformId === "linkedin" ? "Networking em Angola" :
+                 platformId === "pinterest" ? "Dicas de Design" : "POV: Criador em Angola", 
           views: `${Math.floor(Math.random() * 40 + 5)}K`, 
           likes: `${Math.floor(Math.random() * 15 + 2)}K`, 
           comments: Math.floor(Math.random() * 800).toString() 

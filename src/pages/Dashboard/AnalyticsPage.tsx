@@ -270,7 +270,21 @@ export const AnalyticsPage = () => {
         </Card>
 
         {/* Audience Demographics */}
-        <div className="space-y-8">
+        <div className="space-y-8 relative">
+          {creatorProfile?.plan !== "premium" && (
+            <div className="absolute inset-0 z-20 bg-noite/60 backdrop-blur-[2px] rounded-card flex flex-col items-center justify-center p-8 text-center border border-sol/20">
+              <div className="w-12 h-12 rounded-full bg-sol/20 flex items-center justify-center text-sol mb-4">
+                <Crown className="w-6 h-6" />
+              </div>
+              <h4 className="text-lg font-bold mb-2">Demografia Detalhada</h4>
+              <p className="text-xs text-muted mb-4 max-w-[200px]">
+                Desbloqueia insights profundos sobre a idade e localização da tua audiência com o plano Premium.
+              </p>
+              <Button size="sm" variant="sol" onClick={() => navigate("/dashboard/precos")}>
+                Actualizar Agora
+              </Button>
+            </div>
+          )}
           <Card className="glass-card">
             <CardHeader>
               <CardTitle className="text-lg">Idade da Audiência</CardTitle>
@@ -335,7 +349,21 @@ export const AnalyticsPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Sentiment Analysis */}
-        <Card className="glass-card">
+        <Card className="glass-card relative overflow-hidden">
+          {creatorProfile?.plan !== "premium" && (
+            <div className="absolute inset-0 z-20 bg-noite/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-8 text-center border border-sol/20">
+              <div className="w-10 h-10 rounded-full bg-sol/20 flex items-center justify-center text-sol mb-3">
+                <Crown className="w-5 h-5" />
+              </div>
+              <h4 className="font-bold mb-1">Análise de Sentimento IA</h4>
+              <p className="text-[10px] text-muted mb-4 max-w-[150px]">
+                Sabe o que os teus fãs realmente pensam com análise de IA.
+              </p>
+              <Button size="sm" variant="sol" onClick={() => navigate("/dashboard/precos")}>
+                Ver Premium
+              </Button>
+            </div>
+          )}
           <CardHeader>
             <CardTitle>Análise de Sentimento</CardTitle>
             <CardDescription>O que dizem os teus fãs? (AI Analysis)</CardDescription>

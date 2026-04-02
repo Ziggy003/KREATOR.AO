@@ -5,6 +5,10 @@ import {
   Youtube, 
   Music2, 
   Instagram, 
+  Facebook,
+  Twitch,
+  Twitter,
+  Linkedin,
   Globe, 
   Plus, 
   ExternalLink, 
@@ -176,9 +180,13 @@ export const PlatformsPage = () => {
       case "youtube": return Youtube;
       case "tiktok": return Music2;
       case "instagram": return Instagram;
-      case "facebook": return Globe;
+      case "facebook": return Facebook;
       case "spotify": return Music2;
-      case "twitch": return Globe;
+      case "twitch": return Twitch;
+      case "twitter":
+      case "x": return Twitter;
+      case "linkedin": return Linkedin;
+      case "pinterest": return Globe;
       default: return Globe;
     }
   };
@@ -191,6 +199,10 @@ export const PlatformsPage = () => {
       case "facebook": return "text-blue-500";
       case "spotify": return "text-green-500";
       case "twitch": return "text-purple-500";
+      case "twitter":
+      case "x": return "text-white";
+      case "linkedin": return "text-blue-700";
+      case "pinterest": return "text-red-600";
       default: return "text-blue-500";
     }
   };
@@ -460,9 +472,12 @@ export const PlatformsPage = () => {
                     { id: "youtube", name: "YouTube", icon: Youtube, color: "hover:text-red-500" },
                     { id: "tiktok", name: "TikTok", icon: Music2, color: "hover:text-white" },
                     { id: "instagram", name: "Instagram", icon: Instagram, color: "hover:text-pink-500" },
-                    { id: "facebook", name: "Facebook", icon: Globe, color: "hover:text-blue-500" },
+                    { id: "facebook", name: "Facebook", icon: Facebook, color: "hover:text-blue-500" },
                     { id: "spotify", name: "Spotify", icon: Music2, color: "hover:text-green-500" },
-                    { id: "twitch", name: "Twitch", icon: Globe, color: "hover:text-purple-500" }
+                    { id: "twitch", name: "Twitch", icon: Twitch, color: "hover:text-purple-500" },
+                    { id: "twitter", name: "Twitter (X)", icon: Twitter, color: "hover:text-white" },
+                    { id: "linkedin", name: "LinkedIn", icon: Linkedin, color: "hover:text-blue-700" },
+                    { id: "pinterest", name: "Pinterest", icon: Globe, color: "hover:text-red-600" }
                   ].map(p => (
                     <button
                       key={p.id}
