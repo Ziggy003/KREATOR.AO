@@ -95,6 +95,17 @@ service cloud.firestore {
     //   - isPrimary: boolean (optional) - If this is the primary account
     //   - createdAt: timestamp (required) - Creation time
     //
+    // Collection: subscription_requests
+    // Document ID: {requestId}
+    // Fields:
+    //   - userId: string (required)
+    //   - userEmail: string (required)
+    //   - plan: string (required)
+    //   - price: number (required)
+    //   - proof: string (required, base64)
+    //   - status: string (required, enum: pending, approved, rejected)
+    //   - createdAt: timestamp (required)
+    //
     // ===============================================================
 
     // ===============================================================
@@ -223,9 +234,27 @@ service cloud.firestore {
              data.createdAt is timestamp;
     }
 
+    function isValidSubscriptionRequest(data) {
+      return data.keys().hasAll(['userId', 'userEmail', 'plan', 'price', 'proof', 'status', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.userEmail is string && isValidEmail(data.userEmail) &&
+             data.plan in ['premium', 'pro', 'brand'] &&
+             data.price is number && data.price > 0 &&
+             data.proof is string && data.proof.size() > 0 && data.proof.size() < 7000000 && // ~5MB base64
+             data.status == 'pending' &&
+             data.createdAt is timestamp;
+    }
+
     // ===============================================================
     // Match Rules
     // ===============================================================
+
+    match /subscription_requests/{requestId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isAuthenticated() && isValidSubscriptionRequest(request.resource.data);
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
 
     match /users/{uid} {
       allow read: if isOwner(uid) || isAdmin();

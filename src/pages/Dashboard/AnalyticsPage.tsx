@@ -46,29 +46,6 @@ import { useAuthStore } from "../../stores/useAuthStore";
 import { GoogleGenAI } from "@google/genai";
 import Markdown from "react-markdown";
 
-const growthData = [
-  { name: "Jan", followers: 45000, views: 120000 },
-  { name: "Fev", followers: 52000, views: 145000 },
-  { name: "Mar", followers: 61000, views: 180000 },
-  { name: "Abr", followers: 75000, views: 210000 },
-  { name: "Mai", followers: 88000, views: 250000 },
-  { name: "Jun", followers: 105000, views: 320000 },
-];
-
-const audienceData = [
-  { name: "18-24", value: 45 },
-  { name: "25-34", value: 30 },
-  { name: "35-44", value: 15 },
-  { name: "45+", value: 10 },
-];
-
-const locationData = [
-  { name: "Luanda", value: 65 },
-  { name: "Benguela", value: 15 },
-  { name: "Huambo", value: 10 },
-  { name: "Outros", value: 10 },
-];
-
 const COLORS = ["#C1440E", "#F5A623", "#FF6B35", "#1E2240"];
 
 export const AnalyticsPage = () => {
@@ -77,6 +54,43 @@ export const AnalyticsPage = () => {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [aiReport, setAiReport] = useState<string | null>(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+  const stats = creatorProfile?.stats || {
+    followers: 0,
+    views: 0,
+    engagement: 0,
+    revenue: 0,
+    trends: {
+      followers: "0%",
+      views: "0%",
+      engagement: "0%",
+      revenue: "0%"
+    }
+  };
+
+  const growthData = [
+    { name: "Seg", followers: 0, views: 0 },
+    { name: "Ter", followers: 0, views: 0 },
+    { name: "Qua", followers: 0, views: 0 },
+    { name: "Qui", followers: 0, views: 0 },
+    { name: "Sex", followers: 0, views: 0 },
+    { name: "Sáb", followers: 0, views: 0 },
+    { name: "Dom", followers: 0, views: 0 },
+  ];
+
+  const audienceData = [
+    { name: "18-24", value: 0 },
+    { name: "25-34", value: 0 },
+    { name: "35-44", value: 0 },
+    { name: "45+", value: 0 },
+  ];
+
+  const locationData = [
+    { name: "Luanda", value: 0 },
+    { name: "Benguela", value: 0 },
+    { name: "Huambo", value: 0 },
+    { name: "Outros", value: 0 },
+  ];
 
   const generateAIReport = async () => {
     if (!creatorProfile) return;

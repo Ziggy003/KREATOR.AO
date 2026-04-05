@@ -14,7 +14,10 @@ interface AuthState {
   isLoading: boolean;
   initialize: () => void;
   login: (type?: AppUser["type"]) => Promise<void>;
+  loginWithEmail: (email: string, pass: string) => Promise<void>;
+  signupWithEmail: (email: string, pass: string, type: AppUser["type"]) => Promise<void>;
   logout: () => Promise<void>;
+  handleUserSetup: (user: FirebaseUser, type?: AppUser["type"]) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -84,40 +87,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const result = await signInWithGoogle();
       const user = result.user;
-      
-      // Check if user document exists, if not create a default one
-      const userDocRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userDocRef);
-      
-      if (!userDoc.exists()) {
-        const selectedType = type || "creator";
-        const userData: AppUser = {
-          uid: user.uid,
-          email: user.email || "",
-          type: selectedType,
-          kycStatus: "none",
-          createdAt: new Date().toISOString()
-        };
-        await setDoc(userDocRef, userData);
-        
-        // Create profile based on type
-        if (selectedType === "creator") {
-          await setDoc(doc(db, "creator_profiles", user.uid), {
-            uid: user.uid,
-            name: user.displayName || "Novo Criador",
-            updatedAt: new Date().toISOString(),
-            stats: { followers: 0, views: 0, likes: 0 },
-            balance: { aoa: 0, usd: 0 }
-          });
-        } else if (selectedType === "brand") {
-          await setDoc(doc(db, "brand_profiles", user.uid), {
-            uid: user.uid,
-            companyName: user.displayName || "Nova Marca",
-            updatedAt: new Date().toISOString(),
-            balance: { aoa: 0, usd: 0 }
-          });
-        }
-      }
+      await get().handleUserSetup(user, type);
       toast.success("Login efectuado com sucesso!");
     } catch (error: any) {
       if (error.code === "auth/operation-not-allowed") {
@@ -128,6 +98,75 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       handleFirestoreError(error, OperationType.WRITE, "auth/login");
     } finally {
       set({ isLoading: false });
+    }
+  },
+
+  loginWithEmail: async (email: string, pass: string) => {
+    set({ isLoading: true });
+    try {
+      await loginWithEmail(email, pass);
+      toast.success("Login efectuado com sucesso!");
+    } catch (error: any) {
+      toast.error("Erro ao entrar. Verifique as suas credenciais.");
+      handleFirestoreError(error, OperationType.WRITE, "auth/login-email");
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  signupWithEmail: async (email: string, pass: string, type: AppUser["type"]) => {
+    set({ isLoading: true });
+    try {
+      const result = await signupWithEmail(email, pass);
+      const user = result.user;
+      await get().handleUserSetup(user, type);
+      toast.success("Conta criada com sucesso!");
+    } catch (error: any) {
+      if (error.code === "auth/email-already-in-use") {
+        toast.error("Este email já está em uso.");
+      } else {
+        toast.error("Erro ao criar conta.");
+      }
+      handleFirestoreError(error, OperationType.WRITE, "auth/signup-email");
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  handleUserSetup: async (user: FirebaseUser, type?: AppUser["type"]) => {
+    // Check if user document exists, if not create a default one
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+    
+    if (!userDoc.exists()) {
+      const selectedType = type || "creator";
+      const userData: AppUser = {
+        uid: user.uid,
+        email: user.email || "",
+        type: selectedType,
+        kycStatus: "none",
+        createdAt: new Date().toISOString()
+      };
+      await setDoc(userDocRef, userData);
+      
+      // Create profile based on type
+      if (selectedType === "creator") {
+        await setDoc(doc(db, "creator_profiles", user.uid), {
+          uid: user.uid,
+          name: user.displayName || "Novo Criador",
+          updatedAt: new Date().toISOString(),
+          stats: { followers: 0, views: 0, likes: 0 },
+          balance: { aoa: 0, usd: 0 },
+          plan: "free"
+        });
+      } else if (selectedType === "brand") {
+        await setDoc(doc(db, "brand_profiles", user.uid), {
+          uid: user.uid,
+          companyName: user.displayName || "Nova Marca",
+          updatedAt: new Date().toISOString(),
+          balance: { aoa: 0, usd: 0 }
+        });
+      }
     }
   },
 

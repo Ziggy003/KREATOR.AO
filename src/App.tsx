@@ -9,6 +9,7 @@ import { TipsPage } from "./pages/Dashboard/TipsPage";
 import { MarketplacePage } from "./pages/Dashboard/MarketplacePage";
 import { BrandsPage } from "./pages/Dashboard/BrandsPage";
 import { PricingPage } from "./pages/Dashboard/PricingPage";
+import { SubscriptionPage } from "./pages/Dashboard/SubscriptionPage";
 import { PlatformsPage } from "./pages/Dashboard/PlatformsPage";
 import { AnalyticsPage } from "./pages/Dashboard/AnalyticsPage";
 import { RevenuePage } from "./pages/Dashboard/RevenuePage";
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="marcas" element={<BrandsPage />} />
             <Route path="campanhas" element={<MarketplacePage />} />
             <Route path="precos" element={<PricingPage />} />
+            <Route path="pagamento" element={<SubscriptionPage />} />
             <Route path="plataformas" element={<PlatformsPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="receitas" element={<RevenuePage />} />

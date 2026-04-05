@@ -106,13 +106,13 @@ export const PlatformsPage = () => {
       const newPlatform = {
         id: platformName.toLowerCase(),
         name: platformName,
-        status: "connected" as const,
+        status: "pending" as const,
         stats: { 
-          subs: `${Math.floor(Math.random() * 100)}K`, 
-          views: `${Math.floor(Math.random() * 500)}K`, 
-          revenue: Math.floor(Math.random() * 50000) 
+          subs: "0", 
+          views: "0", 
+          revenue: 0 
         },
-        lastSync: "Agora"
+        lastSync: "Pendente"
       };
 
       const updatedPlatforms = [...platforms, newPlatform];
@@ -121,7 +121,7 @@ export const PlatformsPage = () => {
         updatedAt: new Date().toISOString()
       });
 
-      toast.success(`${platformName} conectado com sucesso!`);
+      toast.success(`Pedido de conexão ao ${platformName} enviado!`);
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, "creator_profiles/platforms");
       toast.error(`Erro ao conectar ao ${platformName}.`);
@@ -149,23 +149,10 @@ export const PlatformsPage = () => {
     setIsSyncing(platformId);
     
     try {
-      const response = await fetch(`/api/platforms/sync?platformId=${platformId}`);
-      if (!response.ok) throw new Error("Sync failed");
+      // In a real app, you would fetch real data from the platform API
+      toast.info(`A sincronizar ${platformId.toUpperCase()}...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const { stats, lastSync } = await response.json();
-      
-      const updatedPlatforms = platforms.map(p => {
-        if (p.id === platformId) {
-          return { ...p, stats, lastSync };
-        }
-        return p;
-      });
-
-      await updateDoc(doc(db, "creator_profiles", creatorProfile.uid), {
-        platforms: updatedPlatforms,
-        updatedAt: new Date().toISOString()
-      });
-
       toast.success(`${platformId.toUpperCase()} sincronizado!`);
     } catch (error) {
       console.error("Error syncing platform:", error);

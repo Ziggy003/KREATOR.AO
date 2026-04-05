@@ -27,6 +27,10 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-noite text-texto font-sans antialiased;
   }

@@ -12,7 +12,8 @@ import {
   ArrowRight, 
   MessageSquare,
   Users,
-  Briefcase
+  Briefcase,
+  Clock
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
@@ -125,6 +126,9 @@ export const BrandsPage = () => {
                   <div className="flex flex-col items-end">
                     <Badge variant="success" className="gap-1 mb-2">
                       <CheckCircle2 className="w-3 h-3" /> Verificada
+                    </Badge>
+                    <Badge variant="sol" className="gap-1 mb-2">
+                      <Clock className="w-3 h-3" /> Brevemente
                     </Badge>
                     <div className="flex items-center gap-1 text-sol">
                       <Star className="w-3 h-3 fill-sol" />

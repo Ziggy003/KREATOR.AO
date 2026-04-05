@@ -14,10 +14,12 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
+import { useNavigate } from "react-router-dom";
 import { cn, formatCurrency } from "../../lib/utils";
 import { toast } from "sonner";
 
 export const PricingPage = () => {
+  const navigate = useNavigate();
   const plans = [
     {
       name: "Grátis",
@@ -137,7 +139,13 @@ export const PricingPage = () => {
                 <Button 
                   variant={plan.variant} 
                   className="w-full h-12 text-lg font-bold"
-                  onClick={() => toast.success(`Plano ${plan.name} selecionado! Redirecionando para pagamento...`)}
+                  onClick={() => {
+                    if (plan.price === 0) {
+                      toast.success("Já estás no plano Grátis!");
+                    } else {
+                      navigate(`/dashboard/pagamento?plan=${plan.name}&price=${plan.price}`);
+                    }
+                  }}
                 >
                   {plan.cta}
                 </Button>

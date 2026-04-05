@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/useAuthStore";
@@ -30,6 +30,17 @@ import { Badge } from "../../components/ui/Badge";
 import { Input } from "../../components/ui/Input";
 import { formatCurrency, cn } from "../../lib/utils";
 import { toast } from "sonner";
+import { db, handleFirestoreError, OperationType } from "../../lib/firebase";
+import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
+
+interface Tip {
+  id: string;
+  sender: string;
+  amount: number;
+  message: string | null;
+  createdAt: string;
+  status: string;
+}
 
 export const TipsPage = () => {
   const [activeTab, setActiveTab] = useState<"overview" | "history" | "subscriptions" | "settings">("overview");
@@ -37,6 +48,37 @@ export const TipsPage = () => {
   const navigate = useNavigate();
   const username = user?.displayName?.toLowerCase().replace(/\s+/g, '') || "manewizzy";
   const tipLink = `kreator.ao/t/${username}`;
+  const [tips, setTips] = useState<Tip[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const q = query(
+      collection(db, "transactions"),
+      where("userId", "==", user.uid),
+      where("type", "==", "tip"),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const tipsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Tip[];
+      setTips(tipsData);
+      setIsLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, "transactions/tips");
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const totalTips = tips.reduce((acc, tip) => acc + tip.amount, 0);
+  const averageTip = tips.length > 0 ? totalTips / tips.length : 0;
+  const recentTips = tips.slice(0, 5);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(tipLink);
@@ -54,13 +96,6 @@ export const TipsPage = () => {
       handleCopyLink();
     }
   };
-
-  const recentTips = [
-    { id: "1", sender: "Anónimo", amount: 2500, message: "Adoro o teu conteúdo! Continua assim.", date: "Há 2 horas", status: "completed" },
-    { id: "2", sender: "Carlos Silva", amount: 10000, message: "Obrigado pelas dicas de edição.", date: "Há 5 horas", status: "completed" },
-    { id: "3", sender: "Maria J.", amount: 500, message: "Um café para ti!", date: "Ontem", status: "completed" },
-    { id: "4", sender: "Anónimo", amount: 5000, message: null, date: "Ontem", status: "completed" },
-  ];
 
   return (
     <div className="space-y-8 pb-12">
@@ -155,18 +190,18 @@ export const TipsPage = () => {
               <Card className="glass-card">
                 <CardContent className="p-6 space-y-2">
                   <p className="text-[10px] text-muted uppercase font-bold tracking-widest">Total em Gorjetas</p>
-                  <p className="text-3xl font-display font-bold text-verde">{formatCurrency(185400, "AOA")}</p>
+                  <p className="text-3xl font-display font-bold text-verde">{formatCurrency(totalTips, "AOA")}</p>
                   <div className="flex items-center gap-2 text-xs text-verde">
                     <TrendingUp className="w-3 h-3" />
-                    <span>+24% este mês</span>
+                    <span>{tips.length} gorjetas recebidas</span>
                   </div>
                 </CardContent>
               </Card>
               <Card className="glass-card">
                 <CardContent className="p-6 space-y-2">
                   <p className="text-[10px] text-muted uppercase font-bold tracking-widest">Média por Gorjeta</p>
-                  <p className="text-3xl font-display font-bold">{formatCurrency(3500, "AOA")}</p>
-                  <p className="text-xs text-muted">Baseado em 53 gorjetas</p>
+                  <p className="text-3xl font-display font-bold">{formatCurrency(averageTip, "AOA")}</p>
+                  <p className="text-xs text-muted">Baseado em {tips.length} gorjetas</p>
                 </CardContent>
               </Card>
               <Card className="glass-card bg-sol/5 border-sol/20">
@@ -206,7 +241,7 @@ export const TipsPage = () => {
                       </div>
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center justify-between">
-                          <p className="font-bold">{tip.sender}</p>
+                          <p className="font-bold">{tip.sender || "Anónimo"}</p>
                           <p className="text-lg font-mono font-bold text-verde">{formatCurrency(tip.amount, "AOA")}</p>
                         </div>
                         {tip.message && (
@@ -216,8 +251,13 @@ export const TipsPage = () => {
                           </div>
                         )}
                         <div className="flex items-center gap-4 text-[10px] text-muted uppercase font-bold tracking-widest pt-1">
-                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {tip.date}</span>
-                          <span className="flex items-center gap-1 text-verde"><CheckCircle2 className="w-3 h-3" /> Pago</span>
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(tip.createdAt).toLocaleDateString()}</span>
+                          <span className={cn(
+                            "flex items-center gap-1",
+                            tip.status === "completed" ? "text-verde" : "text-sol"
+                          )}>
+                            <CheckCircle2 className="w-3 h-3" /> {tip.status === "completed" ? "Pago" : "Pendente"}
+                          </span>
                         </div>
                       </div>
                     </motion.div>
